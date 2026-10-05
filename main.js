@@ -38,7 +38,7 @@ const S = [
     sl('', `${head('Materi keempat', 'Kekurangan Sistem Ekonomi <em>Komando</em>')}<div class="row c2">${hcards([['bulb', 'Inovasi terhambat', 'Tanpa persaingan dan insentif keuntungan, kreativitas serta semangat berwirausaha sulit berkembang.'], ['clock', 'Kurang efisien', 'Birokrasi yang panjang dan rencana yang kaku membuat respons terhadap perubahan kebutuhan menjadi lambat.'], ['truck', 'Kelangkaan barang', 'Perencanaan yang keliru dapat memicu kekurangan barang, penimbunan, dan antrean panjang di masyarakat.'], ['lock', 'Kebebasan terbatas', 'Individu tidak bebas memilih jenis usaha, pekerjaan, maupun menentukan harga atas barang yang dibuat.']], 'neg')}</div>${btn('Continue')}`),
     sl('', `${head('Materi kelima', 'Negara Penganut Ekonomi <em>Komando</em>')}<div class="row c4">${[['Korea Utara', 'Rencana negara mengendalikan hampir seluruh sektor, dari pertanian sampai industri.', 'Masih menganut', '', 'kp'], ['Kuba', 'Pemerintah menguasai sektor utama ekonomi dan hanya membuka ruang kecil bagi usaha mandiri.', 'Masih menganut', '', 'cu'], ['Uni Soviet', 'Menjalankan rencana lima tahunan yang disusun negara untuk mengatur produksi nasional.', 'Hingga 1991', 'old', 'su'], ['Tiongkok', 'Menerapkan ekonomi terencana secara ketat sebelum reformasi pasar mulai berjalan.', 'Sebelum 1978', 'old', 'cn']].map(x => `<div class="card rv"><div class="flag f-${x[4]}">${fl[x[4]]}</div><h3>${x[0]}</h3><p>${x[1]}</p><span class="badge ${x[3]}">${x[2]}</span></div>`).join('')}</div>${btn('Continue')}`),
     sl('', `${head('Penutup', '<em>Kesimpulan</em>')}<div class="def"><div class="card big rv"><p>Sistem ekonomi komando menempatkan pemerintah pusat sebagai pengendali penuh kegiatan ekonomi, sehingga distribusi lebih merata dan harga cenderung stabil. Namun, minimnya persaingan dan kebebasan membuat inovasi terhambat serta efisiensi menurun, sehingga sistem ini jarang diterapkan secara utuh pada masa kini.</p></div><div class="stack">${hcards([['building', 'Terpusat', 'Semua keputusan ekonomi berada di tangan negara.'], ['check', 'Kelebihan', 'Pemerataan, harga stabil, dan arah pembangunan jelas.'], ['x', 'Kekurangan', 'Inovasi rendah, birokrasi panjang, kebebasan terbatas.']])}</div></div>${btn('Continue')}`),
-    sl('end', `<div class="halo" style="--h:0"></div><div class="halo" style="--h:1"></div><div class="halo" style="--h:2"></div><div class="rv">${ic('heart', 'big-ico')}</div><h1 class="rv">Terima Kasih</h1><div class="sub rv">Kelompok 2 - Sistem Ekonomi Komando</div>${btn('Ulangi presentasi')}`)
+    sl('end', `<div class="halo" style="--h:0"></div><div class="halo" style="--h:1"></div><div class="halo" style="--h:2"></div><div class="rv hi">${ic('heart', 'big-ico')}</div><h1 class="rv">Terima Kasih</h1><div class="sub rv">Kelompok 2 - Sistem Ekonomi Komando</div>${btn('Ulangi presentasi')}`)
 ];
 
 const app = document.getElementById('app');
@@ -133,7 +133,7 @@ const clr = () => {
 };
 
 const rk = k => k[0] == 'a' ? 0 : k[0] == 'b' ? 1 : k[0] == 'c' ? 2 : k[0] == 'z' ? 9 : 3;
-const key = (e, i) => e.closest('.hd') || e.matches('.tag,h1,.sub') ? 'a' : e.matches('.btn') ? 'z' : e.matches('.orb') ? 'b' : e.matches('.lab,.chip') ? 'c' : 'k' + i;
+const key = (e, i) => e.closest('.hd') || e.matches('.tag,h1,.sub,.hi') ? 'a' : e.matches('.btn') ? 'z' : e.matches('.orb') ? 'b' : e.matches('.lab,.chip') ? 'c' : 'k' + i;
 
 function plan(s) {
     const g = {};
