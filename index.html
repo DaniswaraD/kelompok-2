@@ -38,7 +38,7 @@ h1,h2,h3,.tag,.btn,.cnt,.logo{font-family:'Sora','Plus Jakarta Sans',system-ui,s
 .dot.on{width:2.6rem;background:var(--b5)}
 .slide{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:5.5rem max(7rem,env(safe-area-inset-right)) 4.5rem max(7rem,env(safe-area-inset-left));pointer-events:none}
 .slide.active{pointer-events:auto}
-.slide .rv{transition:transform 1.3s cubic-bezier(.16,1,.3,1),opacity .9s cubic-bezier(.33,1,.68,1),translate .5s cubic-bezier(.16,1,.3,1),box-shadow .5s}
+.slide .rv{transition:transform 1.4s cubic-bezier(.4,.2,.2,1),opacity 1s cubic-bezier(.33,1,.68,1),translate .5s cubic-bezier(.16,1,.3,1),box-shadow .5s}
 .active .rv,.gone .rv{will-change:transform,opacity}
 .active .rv:not(.in){transform:var(--en);opacity:0;transition:none}
 .active .rv.in{transform:none;opacity:1;transition-delay:calc(var(--j,0)*var(--st,120ms)),calc(var(--j,0)*var(--st,120ms)),0s,0s}
