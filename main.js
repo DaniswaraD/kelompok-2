@@ -170,6 +170,7 @@ function go(n) {
         s.classList.toggle('next', i > n);
     });
     dots.forEach((d, i) => d.classList.toggle('on', i === n));
+    document.querySelector('.bg').style.setProperty('--s', n);
     document.getElementById('cn').textContent = String(n + 1).padStart(2, '0') + ' / ' + String(sd.length).padStart(2, '0');
     plan(sd[n]);
 }
