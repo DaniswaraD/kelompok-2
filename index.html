@@ -20,6 +20,12 @@ h1,h2,h3,.tag,.btn,.cnt,.logo{font-family:'Sora','Plus Jakarta Sans',system-ui,s
 .b2{width:30rem;height:30rem;background:#cfe2ff;right:-6rem;bottom:-8rem;animation-delay:-5s}
 .b3{width:20rem;height:20rem;background:#8fbcff;right:30%;top:10%;opacity:.35;animation-delay:-9s}
 @keyframes fl{to{transform:translate(6rem,4rem) scale(1.2)}}
+.bg{--s:0}
+.blob{translate:calc(var(--s)*var(--px,-5rem)) 0;transition:translate 1.9s cubic-bezier(.16,1,.3,1)}
+.b1{--px:-7rem}
+.b2{--px:-12rem}
+.b3{--px:-4rem}
+.grid{background-position:calc(var(--s)*-9rem) 0;transition:background-position 1.9s cubic-bezier(.16,1,.3,1)}
 .p{position:absolute;bottom:-2rem;border-radius:50%;background:rgba(91,156,245,.35);animation:rise linear infinite}
 @keyframes rise{to{transform:translateY(-115vh);opacity:0}}
 .nav{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:1.6rem max(3.5rem,env(safe-area-inset-right)) 0 max(3.5rem,env(safe-area-inset-left));z-index:5}
@@ -32,16 +38,16 @@ h1,h2,h3,.tag,.btn,.cnt,.logo{font-family:'Sora','Plus Jakarta Sans',system-ui,s
 .dot.on{width:2.6rem;background:var(--b5)}
 .slide{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:5.5rem max(7rem,env(safe-area-inset-right)) 4.5rem max(7rem,env(safe-area-inset-left));pointer-events:none}
 .slide.active{pointer-events:auto}
-.slide .rv{transition:transform 1.1s cubic-bezier(.22,1,.36,1),opacity .85s cubic-bezier(.4,0,.2,1),translate .5s cubic-bezier(.16,1,.3,1),box-shadow .5s}
+.slide .rv{transition:transform 1.3s cubic-bezier(.16,1,.3,1),opacity .9s cubic-bezier(.33,1,.68,1),translate .5s cubic-bezier(.16,1,.3,1),box-shadow .5s}
 .active .rv,.gone .rv{will-change:transform,opacity}
 .active .rv:not(.in){transform:var(--en);opacity:0;transition:none}
 .active .rv.in{transform:none;opacity:1;transition-delay:calc(var(--j,0)*120ms),calc(var(--j,0)*120ms),0s,0s}
 .next .rv{transform:var(--en);opacity:0;transition:none}
-.gone .rv{transform:var(--ex);opacity:0;transition-delay:calc(var(--i)*55ms),calc(var(--i)*55ms),0s,0s}
-.t0 .rv{--en:translate3d(0,42vh,0) scale(.92);--ex:translate3d(0,-42vh,0) scale(.92)}
-.t1 .rv{--en:translate3d(0,-42vh,0) scale(.92);--ex:translate3d(0,42vh,0) scale(.92)}
-.t2 .rv{--en:translateX(calc(var(--d)*38vw)) perspective(90rem) rotateY(calc(var(--d)*-28deg)) scale(.94);--ex:translateX(calc(var(--d)*-38vw)) perspective(90rem) rotateY(calc(var(--d)*28deg)) scale(.94)}
-.t3 .rv{--en:perspective(90rem) translateY(18vh) scale(.5) rotateX(35deg);--ex:perspective(90rem) translateY(-18vh) scale(.5) rotateX(-35deg)}
+.gone .rv{transform:var(--ex);opacity:0;transition:transform .95s cubic-bezier(.7,0,.25,1),opacity .6s cubic-bezier(.5,0,.75,0),translate .5s cubic-bezier(.16,1,.3,1),box-shadow .5s;transition-delay:calc(var(--i)*55ms),calc(var(--i)*55ms + 150ms),0s,0s}
+.t0 .rv{--en:translate3d(75vw,0,0) skewX(-14deg);--ex:translate3d(-75vw,0,0) skewX(14deg)}
+.t1 .rv{--en:translate3d(calc(var(--d)*80vw),0,0) rotateZ(calc(var(--d)*3deg));--ex:translate3d(calc(var(--d)*80vw),0,0) rotateZ(calc(var(--d)*-3deg))}
+.t2 .rv{--en:perspective(90rem) translate3d(55vw,0,-30rem) rotateY(-40deg);--ex:perspective(90rem) translate3d(-55vw,0,-30rem) rotateY(40deg)}
+.t3 .rv{--en:translate3d(-75vw,0,0) skewX(14deg) scale(.92);--ex:translate3d(75vw,0,0) skewX(-14deg) scale(.92)}
 .gone .c{opacity:1;animation:none}
 .ico{animation:ib 4s ease-in-out infinite alternate;animation-delay:calc(var(--i,0)*-.45s)}
 @keyframes ib{to{transform:translateY(-.4rem) rotate(-6deg)}}
