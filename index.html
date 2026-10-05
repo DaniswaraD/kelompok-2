@@ -41,7 +41,7 @@ h1,h2,h3,.tag,.btn,.cnt,.logo{font-family:'Sora','Plus Jakarta Sans',system-ui,s
 .slide .rv{transition:transform 1.3s cubic-bezier(.16,1,.3,1),opacity .9s cubic-bezier(.33,1,.68,1),translate .5s cubic-bezier(.16,1,.3,1),box-shadow .5s}
 .active .rv,.gone .rv{will-change:transform,opacity}
 .active .rv:not(.in){transform:var(--en);opacity:0;transition:none}
-.active .rv.in{transform:none;opacity:1;transition-delay:calc(var(--j,0)*120ms),calc(var(--j,0)*120ms),0s,0s}
+.active .rv.in{transform:none;opacity:1;transition-delay:calc(var(--j,0)*var(--st,120ms)),calc(var(--j,0)*var(--st,120ms)),0s,0s}
 .next .rv{transform:var(--en);opacity:0;transition:none}
 .gone .rv{transform:var(--ex);opacity:0;transition:transform .95s cubic-bezier(.7,0,.25,1),opacity .6s cubic-bezier(.5,0,.75,0),translate .5s cubic-bezier(.16,1,.3,1),box-shadow .5s;transition-delay:calc(var(--i)*55ms),calc(var(--i)*55ms + 150ms),0s,0s}
 .t0 .rv{--en:translate3d(75vw,0,0) skewX(-14deg);--ex:translate3d(-75vw,0,0) skewX(14deg)}
@@ -91,7 +91,7 @@ h2 em{font-style:normal;color:var(--b5)}
 h1{font-size:7.5rem;line-height:1;font-weight:800;letter-spacing:-.03em;margin:1.2rem 0 .6rem;color:var(--ink)}
 .sub{font-size:1.9rem;font-weight:600;color:var(--b5);margin-bottom:1.6rem;font-family:'Sora',system-ui,sans-serif}
 .lab{font:700 1.3rem 'Sora',system-ui,sans-serif;color:var(--mut);margin-bottom:.8rem}
-.mem{display:grid;grid-template-columns:1fr 1fr;gap:.65rem .85rem;width:100%}
+.mem{--st:200ms;display:grid;grid-template-columns:1fr 1fr;gap:.65rem .85rem;width:100%}
 .chip{display:flex;align-items:center;gap:.9rem;padding:.65rem 1.1rem .65rem .65rem;border-radius:1.4rem;background:#fff;border:1px solid #dbe9ff;font-weight:600;font-size:1.25rem;transition:translate .4s,box-shadow .4s}
 .chip:hover{translate:0 -.2rem;box-shadow:0 .8rem 1.6rem -.6rem rgba(47,111,219,.45)}
 .chip .ci{width:2.4rem;height:2.4rem;border-radius:.9rem;background:linear-gradient(135deg,#bcd8ff,#5b9cf5);color:#fff;display:grid;place-items:center;flex:none}
