@@ -146,8 +146,10 @@ function plan(s) {
         const els = g[k];
         const d = Math.max(0, ...els.map(e => e._dur || 0));
         const tx = els.some(e => e.querySelector('.c'));
-        const at = x === 0 ? 300 : x === 1 ? o[0].at + 750 : o[x - 1].end;
-        o.push({els, at, end: at + (tx ? 350 + (els.length - 1) * 120 + d + 600 : 300)});
+        const prev = o[x - 1];
+        const at = x === 0 ? 300 : x === 1 ? o[0].at + 750 : k[0] === 'k' && prev.k[0] === 'k' ? prev.at + 200 : prev.end;
+        const st = els.some(e => e.matches('.chip')) ? 200 : 120;
+        o.push({k, els, at, end: at + (tx ? 350 + (els.length - 1) * st + d + 600 : 300)});
     });
     o.forEach(u => tm.push(setTimeout(() => u.els.forEach((e, j) => {
         e.style.setProperty('--j', j);
