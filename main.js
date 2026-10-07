@@ -168,7 +168,10 @@ function go(n) {
     cur = n;
     clr();
     sd.forEach((s, i) => {
-        if (i >= n) s.querySelectorAll('.in').forEach(e => e.classList.remove('in'));
+        if (i >= n) {
+            s.querySelectorAll('.in').forEach(e => e.classList.remove('in'));
+            s.querySelectorAll('.c.d').forEach(e => e.classList.remove('d'));
+        }
     });
     sd.forEach((s, i) => {
         s.classList.toggle('active', i === n);
@@ -231,20 +234,23 @@ let mx = innerWidth / 2;
 let my = innerHeight / 2;
 let hv = null;
 
+let pe = null;
+let dirty = false;
+
 document.addEventListener('mousemove', e => {
     mx = e.clientX;
     my = e.clientY;
-    const c = e.target.closest('.card');
-    if (hv && hv !== c) hv._t = [0, 0];
-    hv = c;
-    if (c) {
-        const r = c.getBoundingClientRect();
-        c.style.setProperty('--mx', e.clientX - r.left + 'px');
-        c.style.setProperty('--my', e.clientY - r.top + 'px');
-        c._t = [(e.clientX - r.left) / r.width - .5, (e.clientY - r.top) / r.height - .5];
-        c._u = c._u || [0, 0];
-        tilted.add(c);
-    }
+    pe = e.target;
+    dirty = true;
+});
+
+app.addEventListener('animationend', e => {
+    const c = e.target;
+    if (c.classList.contains('c') && !c.closest('.wv')) c.classList.add('d');
+});
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'l' || e.key === 'L') root.classList.toggle('lite');
 });
 
 app.querySelectorAll('svg path,svg circle,svg rect').forEach(p => p.setAttribute('pathLength', 1));
@@ -287,10 +293,31 @@ let gx = mx;
 let gy = my;
 const tilted = new Set();
 
-(function tick() {
-    gx += (mx - gx) * .12;
-    gy += (my - gy) * .12;
-    gl.style.transform = `translate3d(${gx}px,${gy}px,0)`;
+const root = document.documentElement;
+let fc = 0;
+let ft = performance.now();
+let low = 0;
+
+(function tick(now = performance.now()) {
+    if (dirty) {
+        dirty = false;
+        const c = pe && pe.closest ? pe.closest('.card') : null;
+        if (hv && hv !== c) hv._t = [0, 0];
+        hv = c;
+        if (c) {
+            const r = c.getBoundingClientRect();
+            c.style.setProperty('--mx', mx - r.left + 'px');
+            c.style.setProperty('--my', my - r.top + 'px');
+            c._t = [(mx - r.left) / r.width - .5, (my - r.top) / r.height - .5];
+            c._u = c._u || [0, 0];
+            tilted.add(c);
+        }
+    }
+    if (Math.abs(mx - gx) > .1 || Math.abs(my - gy) > .1) {
+        gx += (mx - gx) * .12;
+        gy += (my - gy) * .12;
+        gl.style.transform = `translate3d(${gx}px,${gy}px,0)`;
+    }
     tilted.forEach(c => {
         const t = c._t;
         const u = c._u;
@@ -303,6 +330,15 @@ const tilted = new Set();
             tilted.delete(c);
         }
     });
+    fc++;
+    if (now - ft >= 1000) {
+        const fps = fc * 1000 / (now - ft);
+        fc = 0;
+        ft = now;
+        if (!document.hidden && fps < 40) {
+            if (++low >= 3) root.classList.add('lite');
+        } else low = 0;
+    }
     requestAnimationFrame(tick);
 })();
 
