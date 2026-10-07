@@ -84,6 +84,7 @@ function split(el) {
                 [...part].forEach(ch => {
                     const c = document.createElement('span');
                     c.className = 'c';
+                    c.style.setProperty('--r', (Math.random() * 2 - 1).toFixed(2));
                     c.textContent = ch;
                     w.append(c);
                 });
@@ -108,8 +109,11 @@ function timing(rv) {
         const per = isP ? 13 : isH ? 42 : 28;
         const tot = Math.min(cap, n * per);
         const st = tot / n;
+        el.style.setProperty('--fx', 'f' + (el.matches('h1') ? 1 : el.matches('h2') ? 0 : el.matches('h3') ? 2 : isP ? 3 : el.matches('.sub') ? 5 : 4));
+        el.classList.toggle('wv', el.matches('h1,h2,.sub'));
         cs.forEach((c, i) => {
-            c.style.animationDelay = `calc(260ms + var(--j,0)*80ms + ${(off + i * st).toFixed(1)}ms)`;
+            c.style.setProperty('--k', i);
+            c.style.setProperty('--dl', `calc(260ms + var(--j,0)*80ms + ${(off + i * st).toFixed(1)}ms)`);
         });
         off += tot + (isP ? 0 : 90);
     });
@@ -117,7 +121,7 @@ function timing(rv) {
 }
 
 sd.forEach((s, n) => {
-    s.classList.add('t' + n % 4);
+    s.classList.add('t' + n % 6);
     s.querySelectorAll('.rv').forEach((e, i) => {
         e.style.setProperty('--i', i);
         e.style.setProperty('--d', i % 2 ? 1 : -1);
@@ -173,13 +177,15 @@ function go(n) {
     });
     dots.forEach((d, i) => d.classList.toggle('on', i === n));
     document.querySelector('.bg').style.setProperty('--s', n);
-    document.getElementById('cn').textContent = String(n + 1).padStart(2, '0') + ' / ' + String(sd.length).padStart(2, '0');
+    document.documentElement.style.setProperty('--pg', (n + 1) / sd.length);
+    scr(document.getElementById('cn'), String(n + 1).padStart(2, '0') + ' / ' + String(sd.length).padStart(2, '0'));
     plan(sd[n]);
 }
 
 function step() {
     if (busy) return;
     busy = true;
+    sweep();
     clr();
     const c = sd[cur];
     const last = cur >= sd.length - 1;
@@ -203,7 +209,15 @@ function step() {
 }
 
 document.addEventListener('click', e => {
-    if (e.target.closest('[data-go]')) step();
+    const b = e.target.closest('[data-go]');
+    if (!b || busy) return;
+    const r = b.getBoundingClientRect();
+    const o = document.createElement('i');
+    o.className = 'rip';
+    o.style.cssText = `left:${r.left + r.width / 2}px;top:${r.top + r.height / 2}px`;
+    document.body.appendChild(o);
+    setTimeout(() => o.remove(), 1600);
+    step();
 });
 
 document.addEventListener('keydown', e => {
@@ -213,13 +227,83 @@ document.addEventListener('keydown', e => {
     }
 });
 
+let mx = innerWidth / 2;
+let my = innerHeight / 2;
+let hv = null;
+
 document.addEventListener('mousemove', e => {
+    mx = e.clientX;
+    my = e.clientY;
     const c = e.target.closest('.card');
+    if (hv && hv !== c) hv._t = [0, 0];
+    hv = c;
     if (c) {
         const r = c.getBoundingClientRect();
         c.style.setProperty('--mx', e.clientX - r.left + 'px');
         c.style.setProperty('--my', e.clientY - r.top + 'px');
+        c._t = [(e.clientX - r.left) / r.width - .5, (e.clientY - r.top) / r.height - .5];
+        c._u = c._u || [0, 0];
+        tilted.add(c);
     }
 });
+
+app.querySelectorAll('svg path,svg circle,svg rect').forEach(p => p.setAttribute('pathLength', 1));
+
+for (let k = 0; k < 12; k++) {
+    const p = document.createElement('i');
+    const s = 14 + Math.random() * 30;
+    p.className = 'sp ' + (k % 2 ? 'a' : 'b');
+    p.style.cssText = `left:${Math.random() * 100}%;width:${s}px;height:${s}px;animation-duration:${16 + Math.random() * 18}s,${8 + Math.random() * 12}s;animation-delay:${-Math.random() * 20}s,0s`;
+    document.querySelector('.bg').appendChild(p);
+}
+
+const curtain = document.createElement('div');
+curtain.className = 'cur';
+curtain.innerHTML = Array.from({length: 8}, (_, i) => `<i style="--i:${i}"></i>`).join('');
+document.body.appendChild(curtain);
+
+function sweep() {
+    curtain.classList.remove('run');
+    void curtain.offsetWidth;
+    curtain.classList.add('run');
+}
+
+let sid;
+
+function scr(el, t) {
+    clearInterval(sid);
+    let f = 0;
+    sid = setInterval(() => {
+        el.textContent = [...t].map((ch, i) => /\d/.test(ch) && f < 6 + i * 2 ? Math.floor(Math.random() * 10) : ch).join('');
+        if (++f > 20) clearInterval(sid);
+    }, 45);
+}
+
+const gl = document.createElement('div');
+gl.className = 'gl';
+document.querySelector('.bg').after(gl);
+
+let gx = mx;
+let gy = my;
+const tilted = new Set();
+
+(function tick() {
+    gx += (mx - gx) * .12;
+    gy += (my - gy) * .12;
+    gl.style.transform = `translate3d(${gx}px,${gy}px,0)`;
+    tilted.forEach(c => {
+        const t = c._t;
+        const u = c._u;
+        u[0] += (t[0] - u[0]) * .14;
+        u[1] += (t[1] - u[1]) * .14;
+        const a = Math.hypot(u[0], u[1]) * 16;
+        c.style.rotate = `${-u[1]} ${u[0]} 0 ${a}deg`;
+        if (hv !== c && a < .03) {
+            c.style.rotate = '';
+            tilted.delete(c);
+        }
+    });
+    requestAnimationFrame(tick);
+})();
 
 setTimeout(() => go(0), 200);
