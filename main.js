@@ -105,15 +105,15 @@ function timing(rv) {
         const n = cs.length;
         const isP = el.matches('p');
         const isH = el.matches('h1,h2,.sub');
-        const cap = isP ? (rv.matches('.big') ? 2600 : 1500) : isH ? 1100 : 700;
-        const per = isP ? 13 : isH ? 42 : 28;
+        const cap = isP ? (rv.matches('.big') ? 3600 : 2000) : isH ? 1500 : 900;
+        const per = isP ? 18 : isH ? 55 : 38;
         const tot = Math.min(cap, n * per);
         const st = tot / n;
         el.style.setProperty('--fx', 'f' + (el.matches('h1') ? 1 : el.matches('h2') ? 0 : el.matches('h3') ? 2 : isP ? 3 : el.matches('.sub') ? 5 : 4));
         el.classList.toggle('wv', el.matches('h1,h2,.sub'));
         cs.forEach((c, i) => {
             c.style.setProperty('--k', i);
-            c.style.setProperty('--dl', `calc(260ms + var(--j,0)*80ms + ${(off + i * st).toFixed(1)}ms)`);
+            c.style.setProperty('--dl', `calc(650ms + var(--j,0)*80ms + ${(off + i * st).toFixed(1)}ms)`);
         });
         off += tot + (isP ? 0 : 90);
     });
