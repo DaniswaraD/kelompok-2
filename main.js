@@ -1,345 +1,930 @@
-const I = {
-    building: '<path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M9 10h.01M15 10h.01"/>',
-    factory: '<path d="M2 21V11l6 4v-4l6 4V6h4v15zM2 21h20"/>',
-    truck: '<path d="M1 6h13v10H1zM14 10h4l3 3v3h-7z"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
-    tag: '<path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.5"/>',
-    target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
-    lock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/>',
-    users: '<circle cx="9" cy="8" r="3"/><path d="M3 20c0-4 3-6 6-6s6 2 6 6"/><circle cx="17" cy="9" r="2"/><path d="M17 14c3 0 4 2 4 5"/>',
-    down: '<path d="M12 3v18M6 15l6 6 6-6"/>',
-    scale: '<path d="M12 3v18M5 21h14M5 7h14M5 7l-3 7a3 3 0 006 0zM19 7l-3 7a3 3 0 006 0z"/>',
-    check: '<path d="M5 12l5 5 9-11"/>',
-    x: '<path d="M6 6l12 12M18 6L6 18"/>',
-    bolt: '<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
-    bulb: '<path d="M9 18h6M10 21h4M12 3a6 6 0 00-4 10c1 1 1 2 1 3h6c0-1 0-2 1-3a6 6 0 00-4-10z"/>',
-    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
-    arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
-    user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-5 4-7 8-7s8 2 8 7"/>',
-    coin: '<circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 10c0-2 6-2 6 0s-6 2-6 4 6 2 6 0"/>',
-    heart: '<path d="M12 21s-8-5-8-11a4.5 4.5 0 018-3 4.5 4.5 0 018 3c0 6-8 11-8 11z"/>'
+/* =========================================================
+   PRESENTASI EKONOMI — WEBGL PIXEL 3D
+   Kelompok 2 · Sistem Ekonomi Komando
+   ========================================================= */
+(function () {
+'use strict';
+
+/* ========== PALETTE (jangan ganti) ========== */
+const PAL = {
+  bg:      '#0a0e1a',
+  bgDeep:  '#050810',
+  navy:    '#17306b',
+  blue:    '#3d8bff',
+  blueDk:  '#1f56c4',
+  gold:    '#ffd23f',
+  goldDk:  '#d4b23a',
+  red:     '#ff5d5d',
+  redDk:   '#b32b30',
+  green:   '#4ade80',
+  ink:     '#f2f4f8',
+  muted:   '#8a92a6',
+  card:    '#f4f9ff',
+  cardIn:  '#e8f2ff',
+  cardSh:  '#cfe0f7',
+  text:    '#17306b',
+  textSub: '#3a4a66',
 };
 
-const sv = n => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${I[n]}</svg>`;
-const ic = (n, c) => `<div class="ico ${c || ''}">${sv(n)}</div>`;
-const btn = t => `<button class="btn rv" data-go>${t}${sv('arrow')}</button>`;
-const head = (t, h) => `<div class="hd"><div class="hdl"><div class="tag rv"><i></i>${t}</div><h2 class="rv">${h}</h2></div></div>`;
-const vcards = a => a.map(x => `<div class="card rv"><div class="vh">${ic(x[0])}<h3>${x[1]}</h3></div><p>${x[2]}</p></div>`).join('');
-const hcards = (a, c) => a.map(x => `<div class="card hz rv ${c || ''}">${ic(x[0])}<div><h3>${x[1]}</h3><p>${x[2]}</p></div></div>`).join('');
-const sl = (c, h) => `<section class="slide next ${c}">${h}</section>`;
-const fl = {kp: '<b></b><i></i>', cu: '<b></b>', su: '<b></b><i></i>', cn: '<b></b><i></i><i></i><i></i><i></i>'};
+/* ========== FONT ========== */
+const FONT = s => `${s}px 'Press Start 2P', monospace`;
+const NATIVE = 8; // pixel font native grid
 
-const names = ['Nur Fadilah Rezkia', 'Joshua Rafael Saranga', 'Federer Leonardus Walter', 'Elma Aglucia Lupita Rahael', 'Salwa Dwi Anggaran', 'Maytreecya Balialo', 'Achmad Daniswara Javas Muchie'];
+/* ========== RENDER SETUP ========== */
+const canvas   = document.getElementById('gl');
+const renderer = new THREE.WebGLRenderer({
+  canvas,
+  antialias: false,
+  alpha: false,
+  powerPreference: 'high-performance',
+});
+renderer.setPixelRatio(1);
+renderer.setClearColor(PAL.bgDeep, 1);
 
-const S = [
-    sl('', `<div class="hero"><div class="hl"><div class="tag rv"><i></i>Presentasi Ekonomi</div><h1 class="rv">Kelompok 2</h1><div class="sub rv">Sistem Ekonomi Komando</div><div class="lab rv">Anggota</div><div class="mem">${names.map(n => `<div class="chip rv"><span class="ci">${sv('user')}</span>${n}</div>`).join('')}</div>${btn('Continue')}</div><div class="orb rv"><div class="ring r1"><div class="nd">${sv('coin')}</div><div class="nd bt">${sv('truck')}</div></div><div class="ring r2"><div class="nd">${sv('factory')}</div><div class="nd bt">${sv('tag')}</div></div><div class="ring r3"><div class="nd">${sv('target')}</div><div class="nd bt">${sv('users')}</div></div><div class="core">${sv('building')}</div></div></div>`),
-    sl('', `${head('Materi pertama', 'Pengertian Sistem Ekonomi <em>Komando</em>')}<div class="def"><div class="card big rv"><p>Sistem ekonomi komando adalah sistem yang menyerahkan seluruh kegiatan ekonomi, mulai dari produksi, distribusi, hingga penetapan harga, kepada perencanaan dan pengendalian pemerintah pusat. Masyarakat dan pelaku usaha bertugas menjalankan rencana yang sudah ditetapkan, bukan menentukan arah ekonominya sendiri.</p></div><div class="stack">${hcards([['factory', 'Produksi', 'Negara menentukan jenis dan jumlah barang yang harus dibuat.'], ['truck', 'Distribusi', 'Pemerintah mengatur arus barang dari pabrik hingga ke masyarakat.'], ['tag', 'Harga', 'Harga ditetapkan oleh negara, bukan oleh mekanisme pasar.']])}</div></div>${btn('Continue')}`),
-    sl('', `${head('Materi kedua', 'Ciri-ciri Sistem Ekonomi <em>Komando</em>')}<div class="row c3">${vcards([['building', 'Dikuasai negara', 'Sumber daya alam, tanah, dan alat produksi utama dimiliki serta dikelola langsung oleh pemerintah.'], ['target', 'Perencanaan terpusat', 'Jenis, jumlah, dan target produksi ditentukan lewat rencana resmi yang disusun pemerintah pusat.'], ['tag', 'Harga ditetapkan', 'Harga barang dan jasa diatur oleh negara, bukan terbentuk dari permintaan dan penawaran.'], ['scale', 'Minim persaingan', 'Pelaku usaha mengikuti arahan negara, sehingga persaingan bebas hampir tidak terjadi.'], ['down', 'Keputusan top-down', 'Kebijakan ekonomi mengalir dari pemerintah pusat ke daerah, perusahaan, dan masyarakat.'], ['users', 'Peran swasta terbatas', 'Kepemilikan pribadi atas faktor produksi dan kebebasan membuka usaha sangat dibatasi.']])}</div>${btn('Continue')}`),
-    sl('', `${head('Materi ketiga', 'Kelebihan Sistem Ekonomi <em>Komando</em>')}<div class="row c2">${hcards([['scale', 'Distribusi lebih merata', 'Barang kebutuhan pokok dapat dibagikan secara adil sehingga kesenjangan antar masyarakat dapat ditekan.'], ['tag', 'Harga relatif stabil', 'Karena harga dikendalikan pemerintah, gejolak pasar seperti kenaikan harga mendadak dapat diminimalkan.'], ['users', 'Pengangguran rendah', 'Negara mengatur lapangan kerja dan menempatkan tenaga kerja, sehingga hampir semua orang mendapat pekerjaan.'], ['bolt', 'Prioritas nasional cepat', 'Proyek besar seperti infrastruktur dan industri berat bisa digerakkan cepat karena keputusan terpusat.']])}</div>${btn('Continue')}`),
-    sl('', `${head('Materi keempat', 'Kekurangan Sistem Ekonomi <em>Komando</em>')}<div class="row c2">${hcards([['bulb', 'Inovasi terhambat', 'Tanpa persaingan dan insentif keuntungan, kreativitas serta semangat berwirausaha sulit berkembang.'], ['clock', 'Kurang efisien', 'Birokrasi yang panjang dan rencana yang kaku membuat respons terhadap perubahan kebutuhan menjadi lambat.'], ['truck', 'Kelangkaan barang', 'Perencanaan yang keliru dapat memicu kekurangan barang, penimbunan, dan antrean panjang di masyarakat.'], ['lock', 'Kebebasan terbatas', 'Individu tidak bebas memilih jenis usaha, pekerjaan, maupun menentukan harga atas barang yang dibuat.']], 'neg')}</div>${btn('Continue')}`),
-    sl('', `${head('Materi kelima', 'Negara Penganut Ekonomi <em>Komando</em>')}<div class="row c4">${[['Korea Utara', 'Rencana negara mengendalikan hampir seluruh sektor, dari pertanian sampai industri.', 'Masih menganut', '', 'kp'], ['Kuba', 'Pemerintah menguasai sektor utama ekonomi dan hanya membuka ruang kecil bagi usaha mandiri.', 'Masih menganut', '', 'cu'], ['Uni Soviet', 'Menjalankan rencana lima tahunan yang disusun negara untuk mengatur produksi nasional.', 'Hingga 1991', 'old', 'su'], ['Tiongkok', 'Menerapkan ekonomi terencana secara ketat sebelum reformasi pasar mulai berjalan.', 'Sebelum 1978', 'old', 'cn']].map(x => `<div class="card rv"><div class="flag f-${x[4]}">${fl[x[4]]}</div><h3>${x[0]}</h3><p>${x[1]}</p><span class="badge ${x[3]}">${x[2]}</span></div>`).join('')}</div>${btn('Continue')}`),
-    sl('', `${head('Penutup', '<em>Kesimpulan</em>')}<div class="def"><div class="card big rv"><p>Sistem ekonomi komando menempatkan pemerintah pusat sebagai pengendali penuh kegiatan ekonomi, sehingga distribusi lebih merata dan harga cenderung stabil. Namun, minimnya persaingan dan kebebasan membuat inovasi terhambat serta efisiensi menurun, sehingga sistem ini jarang diterapkan secara utuh pada masa kini.</p></div><div class="stack">${hcards([['building', 'Terpusat', 'Semua keputusan ekonomi berada di tangan negara.'], ['check', 'Kelebihan', 'Pemerataan, harga stabil, dan arah pembangunan jelas.'], ['x', 'Kekurangan', 'Inovasi rendah, birokrasi panjang, kebebasan terbatas.']])}</div></div>${btn('Continue')}`),
-    sl('end', `<div class="halo" style="--h:0"></div><div class="halo" style="--h:1"></div><div class="halo" style="--h:2"></div><div class="rv hi">${ic('heart', 'big-ico')}</div><h1 class="rv">Terima Kasih</h1><div class="sub rv">Kelompok 2 - Sistem Ekonomi Komando</div>${btn('Ulangi presentasi')}`)
+const SHORT_SIDE = 240;   // render target short side = 240px (native)
+let renderW = 427, renderH = 240;
+
+/* ========== CAMERA ========== */
+const FOV      = 50;
+const CAM_DIST = 15;      // distance from camera to active slide
+const GAP      = 30;      // z-distance between slides
+const camera = new THREE.PerspectiveCamera(FOV, 16/9, 0.3, 80);
+camera.position.set(0, 0, CAM_DIST);
+
+/* ========== PIXEL SCALE (world units per render pixel) ========== */
+let PX = 1;
+function computePX() {
+  const visH = 2 * Math.tan((FOV / 2) * Math.PI / 180) * CAM_DIST;
+  PX = visH / renderH;
+}
+
+/* ========== SCENE ========== */
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(PAL.bgDeep);
+
+/* ========== RESIZE ========== */
+function resize() {
+  const aspect = window.innerWidth / window.innerHeight;
+  if (aspect >= 1) {
+    renderH = SHORT_SIDE;
+    renderW = Math.min(640, Math.round(SHORT_SIDE * aspect));
+  } else {
+    renderW = SHORT_SIDE;
+    renderH = Math.min(640, Math.round(SHORT_SIDE / aspect));
+  }
+  renderer.setSize(renderW, renderH, false);
+  canvas.style.width  = '100%';
+  canvas.style.height = '100%';
+  camera.aspect = aspect;
+  camera.updateProjectionMatrix();
+}
+
+/* =========================================================
+   CANVAS HELPERS
+   ========================================================= */
+const _measure = document.createElement('canvas').getContext('2d');
+
+function canvasMake(w, h) {
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, Math.round(w));
+  c.height = Math.max(1, Math.round(h));
+  const x = c.getContext('2d');
+  x.imageSmoothingEnabled = false;
+  return { c, x };
+}
+
+function texFromCanvas(c) {
+  const t = new THREE.CanvasTexture(c);
+  t.minFilter = THREE.NearestFilter;
+  t.magFilter = THREE.NearestFilter;
+  t.generateMipmaps = false;
+  t.anisotropy = 1;
+  return t;
+}
+
+/**
+ * Force alpha channel ke 0/255, dan RGB ke warna solid.
+ * Bikin text crisp — tanpa edge blur.
+ */
+function binarizeAlpha(x, c, hexColor) {
+  const id = x.getImageData(0, 0, c.width, c.height);
+  const d  = id.data;
+  const R = parseInt(hexColor.slice(1, 3), 16);
+  const G = parseInt(hexColor.slice(3, 5), 16);
+  const B = parseInt(hexColor.slice(5, 7), 16);
+  for (let i = 0; i < d.length; i += 4) {
+    if (d[i + 3] >= 128) {
+      d[i] = R; d[i + 1] = G; d[i + 2] = B; d[i + 3] = 255;
+    } else {
+      d[i + 3] = 0;
+    }
+  }
+  x.putImageData(id, 0, 0);
+}
+
+/* =========================================================
+   TEXT MESH — PlaneGeometry + CanvasTexture (1:1 pixel)
+   ========================================================= */
+function makeText(text, opt) {
+  opt = opt || {};
+  const size     = opt.size     || NATIVE;
+  const color    = opt.color    || PAL.ink;
+  const bg       = opt.bg       || null;      // background fill (card-like)
+  const bgBorder = opt.bgBorder || null;
+  const bgShadow = opt.bgShadow || null;
+  const pad      = opt.pad      || 6;
+  const maxW     = opt.maxW     || Infinity;
+  const align    = opt.align    || 'center';
+  const lineGap  = opt.lineGap  != null ? opt.lineGap : Math.round(size * 0.55);
+  const shadow   = opt.shadow   || null;      // pixel drop shadow color
+
+  /* --- wrap text --- */
+  _measure.font = FONT(size);
+  const paragraphs = String(text).split('\n');
+  const lines = [];
+  for (const p of paragraphs) {
+    if (maxW < Infinity && _measure.measureText(p).width > maxW) {
+      const words = p.split(' ');
+      let line = '';
+      for (const w of words) {
+        const t = line ? line + ' ' + w : w;
+        if (_measure.measureText(t).width > maxW && line) {
+          lines.push(line);
+          line = w;
+        } else line = t;
+      }
+      if (line) lines.push(line);
+    } else {
+      lines.push(p);
+    }
+  }
+
+  /* --- measure --- */
+  const maxLineW = Math.max.apply(null, lines.map(l => _measure.measureText(l).width));
+  const lineH    = size + lineGap;
+  const W = Math.ceil(maxLineW) + pad * 2 + (shadow ? 2 : 0);
+  const H = lines.length * lineH - lineGap + pad * 2 + (shadow ? 2 : 0);
+
+  const { c, x } = canvasMake(W, H);
+
+  /* --- background box (opsional) --- */
+  if (bg) {
+    if (bgBorder) {
+      x.fillStyle = bgBorder;
+      x.fillRect(0, 0, W, H);
+      x.fillStyle = bg;
+      x.fillRect(2, 2, W - 4, H - 4);
+      if (bgShadow) {
+        x.fillStyle = bgShadow;
+        x.fillRect(2, H - 6, W - 4, 4);
+      }
+    } else {
+      x.fillStyle = bg;
+      x.fillRect(0, 0, W, H);
+    }
+  }
+
+  /* --- draw text --- */
+  x.font = FONT(size);
+  x.textBaseline = 'top';
+  x.textAlign = align === 'center' ? 'center' : align === 'right' ? 'right' : 'left';
+  const ax = align === 'center' ? W / 2
+           : align === 'right'  ? W - pad
+           : pad;
+
+  for (let i = 0; i < lines.length; i++) {
+    const ty = pad + i * lineH;
+    if (shadow) {
+      x.fillStyle = shadow;
+      x.fillText(lines[i], ax + 2, ty + 2);
+    }
+    x.fillStyle = color;
+    x.fillText(lines[i], ax, ty);
+  }
+
+  /* --- crisp alpha (kalau tidak ada bg solid) --- */
+  if (!bg) binarizeAlpha(x, c, color);
+
+  /* --- mesh --- */
+  const tex  = texFromCanvas(c);
+  const geo  = new THREE.PlaneGeometry(W * PX, H * PX);
+  const mat  = new THREE.MeshBasicMaterial({
+    map: tex,
+    transparent: true,
+    depthWrite: false,
+    side: THREE.FrontSide,
+  });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.userData.pixelW = W;
+  mesh.userData.pixelH = H;
+  return mesh;
+}
+
+/* =========================================================
+   CARD MESH — BoxGeometry 3D dengan front face pixel texture
+   ========================================================= */
+function makeCard(wWorld, hWorld, opt) {
+  opt = opt || {};
+  const bgCol    = opt.bg        || PAL.card;
+  const borderC  = opt.border    || PAL.navy;
+  const innerSh  = opt.innerSh   || PAL.cardSh;
+  const title    = opt.title     || null;
+  const body     = opt.body      || null;
+  const titleCol = opt.titleCol  || PAL.navy;
+  const bodyCol  = opt.bodyCol   || PAL.textSub;
+  const flagDraw = opt.flag      || null;   // fungsi draw flag (canvas)
+
+  const W = Math.round(wWorld / PX);
+  const H = Math.round(hWorld / PX);
+  const { c, x } = canvasMake(W, H);
+
+  /* --- border --- */
+  x.fillStyle = borderC;
+  x.fillRect(0, 0, W, H);
+  /* --- inner --- */
+  x.fillStyle = bgCol;
+  x.fillRect(3, 3, W - 6, H - 6);
+  /* --- bottom inner shadow --- */
+  x.fillStyle = innerSh;
+  x.fillRect(3, H - 6, W - 6, 3);
+
+  let cursorY = 12;
+
+  /* --- flag area (kalau ada) --- */
+  if (flagDraw) {
+    const fH = Math.min(28, Math.round(H * 0.42));
+    const fW = W - 16;
+    flagDraw(x, 8, 10, fW, fH);
+    cursorY = 10 + fH + 8;
+  }
+
+  /* --- title --- */
+  if (title) {
+    x.font = FONT(8);
+    x.fillStyle = titleCol;
+    x.textBaseline = 'top';
+    x.textAlign = 'left';
+    x.fillText(title, 10, cursorY);
+    cursorY += 12;
+  }
+
+  /* --- body --- */
+  if (body) {
+    x.font = FONT(8);
+    x.fillStyle = bodyCol;
+    x.textBaseline = 'top';
+    x.textAlign = 'left';
+    const maxW = W - 20;
+    const words = String(body).split(' ');
+    let line = '';
+    for (const w of words) {
+      const t = line ? line + ' ' + w : w;
+      if (x.measureText(t).width > maxW && line) {
+        x.fillText(line, 10, cursorY);
+        cursorY += 12;
+        line = w;
+      } else line = t;
+    }
+    if (line) x.fillText(line, 10, cursorY);
+  }
+
+  /* --- mesh: box dengan front face bertekstur --- */
+  const depth = PX * 6;  // 6 render pixels dalam
+  const geo = new THREE.BoxGeometry(wWorld, hWorld, depth);
+  const frontMat = new THREE.MeshBasicMaterial({
+    map: texFromCanvas(c),
+    transparent: true,
+    depthWrite: false,
+  });
+  const sideMat = new THREE.MeshBasicMaterial({
+    color: borderC,
+    transparent: true,
+    depthWrite: false,
+  });
+  const mats = [sideMat, sideMat, sideMat, sideMat, frontMat, sideMat];
+  const mesh = new THREE.Mesh(geo, mats);
+  mesh.userData.pixelW = W;
+  mesh.userData.pixelH = H;
+  return mesh;
+}
+
+/* =========================================================
+   FLAG DRAWERS (pixel style)
+   ========================================================= */
+function flagKP(x, px, py, w, h) {
+  x.fillStyle = '#024fa2';
+  x.fillRect(px, py, w, h);
+  const cx = px + w * 0.28, cy = py + h / 2, r = Math.min(w, h) * 0.32;
+  x.fillStyle = '#ed1c27';
+  x.beginPath(); x.arc(cx, cy, r, 0, Math.PI * 2); x.fill();
+  x.fillStyle = '#fff';
+  x.beginPath(); x.arc(cx - r * 0.15, cy, r * 0.85, 0, Math.PI * 2); x.fill();
+}
+function flagCU(x, px, py, w, h) {
+  const stripes = 5;
+  for (let i = 0; i < stripes; i++) {
+    x.fillStyle = i % 2 === 0 ? '#0033a0' : '#ffffff';
+    x.fillRect(px, py + (h / stripes) * i, w, h / stripes + 1);
+  }
+  x.fillStyle = '#cf142b';
+  x.beginPath();
+  x.moveTo(px, py);
+  x.lineTo(px + w * 0.38, py + h / 2);
+  x.lineTo(px, py + h);
+  x.closePath(); x.fill();
+  x.fillStyle = '#fff';
+  x.fillRect(px + w * 0.10, py + h * 0.42, 5, 5);
+}
+function flagSU(x, px, py, w, h) {
+  x.fillStyle = '#cc0000';
+  x.fillRect(px, py, w, h);
+  x.fillStyle = '#ffd700';
+  x.font = FONT(8);
+  x.textBaseline = 'top';
+  x.fillText('★', px + 6, py + 6);
+}
+function flagCN(x, px, py, w, h) {
+  x.fillStyle = '#de2910';
+  x.fillRect(px, py, w, h);
+  x.fillStyle = '#ffde00';
+  x.font = FONT(8);
+  x.textBaseline = 'top';
+  x.fillText('★', px + 6, py + 6);
+  x.font = FONT(5);
+  x.fillText('★', px + 20, py + 4);
+  x.fillText('★', px + 22, py + 12);
+  x.fillText('★', px + 22, py + 20);
+  x.fillText('★', px + 20, py + 28);
+}
+
+/* =========================================================
+   SLIDE STORAGE
+   ========================================================= */
+const slides = [];
+let curSlide = 0;
+
+/* =========================================================
+   SLIDE BUILDER HELPERS
+   ========================================================= */
+function newSlide(index) {
+  const g = new THREE.Group();
+  g.position.z = -index * GAP;
+  g.userData = { elements: [], allMats: [] };
+  scene.add(g);
+  return g;
+}
+
+function add(slide, mesh, opt) {
+  opt = opt || {};
+  slide.add(mesh);
+  mesh.userData.basePos = mesh.position.clone();
+  mesh.userData.entryDelay = opt.delay   || 0;
+  mesh.userData.entryDur   = opt.dur     || 750;
+  mesh.userData.fromOffset = opt.from    || { x: 0, y: -1.2, z: 2.5 };
+  mesh.userData.fromScale  = opt.fromScale != null ? opt.fromScale : 0.85;
+  mesh.userData.animated   = false;
+  mesh.userData.enterAt    = 0;
+
+  slide.userData.elements.push(mesh);
+
+  const m = mesh.material;
+  if (Array.isArray(m)) m.forEach(mm => slide.userData.allMats.push(mm));
+  else if (m)           slide.userData.allMats.push(m);
+
+  return mesh;
+}
+
+/* =========================================================
+   BUILD SLIDES
+   ========================================================= */
+const NAMES = [
+  'Nur Fadilah Rezkia',
+  'Joshua Rafael Saranga',
+  'Federer Leonardus Walter',
+  'Elma Aglucia Lupita Rahael',
+  'Salwa Dwi Anggaran',
+  'Maytreecya Balialo',
+  'Achmad Daniswara Javas Muchie',
 ];
 
-const app = document.getElementById('app');
-app.innerHTML = S.join('');
-document.getElementById('lg').innerHTML = sv('building');
+/* ---------- 1. HERO ---------- */
+function buildHero() {
+  const s = newSlide(0);
 
-const sd = [...app.children];
-const dt = document.getElementById('dt');
-dt.innerHTML = sd.map(() => '<i class="dot"></i>').join('');
-const dots = [...dt.children];
+  const tag = makeText('[ PRESENTASI EKONOMI ]', { size: 8, color: PAL.gold });
+  tag.position.set(0, 5.4, 0);
+  add(s, tag, { delay: 0 });
 
-for (let k = 0; k < 14; k++) {
-    const p = document.createElement('i');
-    const s = 4 + Math.random() * 10;
-    p.className = 'p';
-    p.style.cssText = `left:${Math.random() * 100}%;width:${s}px;height:${s}px;animation-duration:${12 + Math.random() * 16}s;animation-delay:${-Math.random() * 20}s`;
-    document.querySelector('.bg').appendChild(p);
+  const title = makeText('KELOMPOK 2', { size: 40, color: PAL.ink, shadow: PAL.navy });
+  title.position.set(0, 3.9, 0);
+  add(s, title, { delay: 120 });
+
+  const sub = makeText('SISTEM EKONOMI KOMANDO', { size: 16, color: PAL.gold });
+  sub.position.set(0, 2.4, 0);
+  add(s, sub, { delay: 300 });
+
+  const lab = makeText('· ANGGOTA ·', { size: 8, color: PAL.muted });
+  lab.position.set(0, 0.9, 0);
+  add(s, lab, { delay: 450 });
+
+  NAMES.forEach((n, i) => {
+    const t = makeText('> ' + n, { size: 8, color: PAL.ink });
+    t.position.set(0, -0.3 - i * 0.55, 0);
+    add(s, t, {
+      delay: 560 + i * 70,
+      from:  { x: 0, y: 0, z: 2 },
+      fromScale: 0.6,
+    });
+  });
+
+  const hint = makeText('[ TEKAN -> UNTUK LANJUT ]', { size: 8, color: PAL.gold });
+  hint.position.set(0, -5.4, 0);
+  add(s, hint, { delay: 1400 });
+
+  return s;
 }
 
-const sel = 'h1,h2,h3,p,.sub,.lab,.tag,.chip,.badge,.btn';
+/* ---------- 2. PENGERTIAN ---------- */
+function buildPengertian() {
+  const s = newSlide(1);
 
-function split(el) {
-    if (el.matches('.btn,.chip,.tag')) {
-        [...el.childNodes].forEach(q => {
-            if (q.nodeType === 3 && q.textContent.trim()) {
-                const w = document.createElement('span');
-                q.replaceWith(w);
-                w.append(q);
-            }
-        });
+  const tag = makeText('[ MATERI PERTAMA ]', { size: 8, color: PAL.gold });
+  tag.position.set(0, 5.6, 0);
+  add(s, tag);
+
+  const t1 = makeText('PENGERTIAN', { size: 24, color: PAL.ink, shadow: PAL.navy });
+  t1.position.set(0, 4.4, 0);
+  add(s, t1, { delay: 100 });
+
+  const t2 = makeText('SISTEM EKONOMI KOMANDO', { size: 16, color: PAL.gold });
+  t2.position.set(0, 3.3, 0);
+  add(s, t2, { delay: 220 });
+
+  const body = makeText(
+    'Sistem ekonomi komando adalah sistem yang menyerahkan seluruh kegiatan ekonomi ' +
+    '— mulai dari produksi, distribusi, hingga penetapan harga — kepada perencanaan ' +
+    'dan pengendalian pemerintah pusat.',
+    {
+      size: 8, color: PAL.text, maxW: 360, align: 'center',
+      bg: PAL.card, bgBorder: PAL.navy, bgShadow: PAL.cardSh, pad: 10,
     }
-    [...el.childNodes].forEach(function f(nd) {
-        if (nd.nodeType === 3) {
-            const fr = document.createDocumentFragment();
-            nd.textContent.split(/(\s+)/).forEach(part => {
-                if (!part) return;
-                if (/^\s+$/.test(part)) {
-                    fr.append(' ');
-                    return;
-                }
-                const w = document.createElement('span');
-                w.className = 'w';
-                [...part].forEach(ch => {
-                    const c = document.createElement('span');
-                    c.className = 'c';
-                    c.style.setProperty('--r', (Math.random() * 2 - 1).toFixed(2));
-                    c.textContent = ch;
-                    w.append(c);
-                });
-                fr.append(w);
-            });
-            nd.replaceWith(fr);
-        } else {
-            [...nd.childNodes].forEach(f);
-        }
+  );
+  body.position.set(0, 1.4, 0);
+  add(s, body, { delay: 400 });
+
+  const cards = [
+    ['PRODUKSI',  'Negara menentukan jenis dan jumlah barang yang dibuat.'],
+    ['DISTRIBUSI','Pemerintah mengatur arus barang ke masyarakat.'],
+    ['HARGA',     'Harga ditetapkan negara, bukan mekanisme pasar.'],
+  ];
+  cards.forEach((c, i) => {
+    const card = makeCard(6.8, 2.7, { title: c[0], body: c[1] });
+    card.position.set((i - 1) * 7.4, -2.6, 0);
+    add(s, card, {
+      delay: 620 + i * 110,
+      from:  { x: 0, y: -1.2, z: 1.5 },
     });
+  });
+
+  return s;
 }
 
-function timing(rv) {
-    const list = [...(rv.matches(sel) ? [rv] : []), ...rv.querySelectorAll(sel)].filter(e => e.querySelector('.c'));
-    let off = 0;
-    list.forEach(el => {
-        const cs = el.querySelectorAll('.c');
-        const n = cs.length;
-        const isP = el.matches('p');
-        const isH = el.matches('h1,h2,.sub');
-        const cap = isP ? (rv.matches('.big') ? 3600 : 2000) : isH ? 1500 : 900;
-        const per = isP ? 18 : isH ? 55 : 38;
-        const tot = Math.min(cap, n * per);
-        const st = tot / n;
-        el.style.setProperty('--fx', 'f' + (el.matches('h1') ? 1 : el.matches('h2') ? 0 : el.matches('h3') ? 2 : isP ? 3 : el.matches('.sub') ? 5 : 4));
-        el.classList.toggle('wv', el.matches('h1,h2,.sub'));
-        cs.forEach((c, i) => {
-            c.style.setProperty('--k', i);
-            c.style.setProperty('--dl', `calc(650ms + var(--j,0)*80ms + ${(off + i * st).toFixed(1)}ms)`);
-        });
-        off += tot + (isP ? 0 : 90);
+/* ---------- 3. CIRI-CIRI ---------- */
+function buildCiri() {
+  const s = newSlide(2);
+
+  const tag = makeText('[ MATERI KEDUA ]', { size: 8, color: PAL.gold });
+  tag.position.set(0, 5.6, 0);
+  add(s, tag);
+
+  const t1 = makeText('CIRI-CIRI UTAMA', { size: 24, color: PAL.ink, shadow: PAL.navy });
+  t1.position.set(0, 4.4, 0);
+  add(s, t1, { delay: 100 });
+
+  const items = [
+    ['DIKUASAI NEGARA',      'SDA, tanah, dan alat produksi dimiliki negara.'],
+    ['RENCANA TERPUSAT',     'Target produksi ditentukan pemerintah pusat.'],
+    ['HARGA DITETAPKAN',     'Negara yang menentukan, bukan pasar bebas.'],
+    ['MINIM PERSAINGAN',     'Pelaku usaha ikut arahan negara, bukan bersaing.'],
+    ['KEPUTUSAN TOP-DOWN',   'Kebijakan mengalir dari pusat ke daerah.'],
+    ['SWASTA TERBATAS',      'Kepemilikan pribadi dan kebebasan dibatasi.'],
+  ];
+  items.forEach((it, i) => {
+    const col = i % 3;
+    const row = Math.floor(i / 3);
+    const card = makeCard(7.2, 3.2, { title: it[0], body: it[1] });
+    card.position.set((col - 1) * 7.8, 1.6 - row * 3.8, 0);
+    add(s, card, {
+      delay: 250 + i * 90,
+      from:  { x: 0, y: -1.2, z: 1.8 },
     });
-    rv._dur = Math.min(off, 600);
+  });
+
+  return s;
 }
 
-sd.forEach((s, n) => {
-    s.classList.add('t' + n % 6);
-    s.querySelectorAll('.rv').forEach((e, i) => {
-        e.style.setProperty('--i', i);
-        e.style.setProperty('--d', i % 2 ? 1 : -1);
-    });
-    s.querySelectorAll(sel).forEach(split);
-    s.querySelectorAll('.rv').forEach(timing);
-});
+/* ---------- 4. KELEBIHAN ---------- */
+function buildKelebihan() {
+  const s = newSlide(3);
 
-let tm = [];
-const clr = () => {
-    tm.forEach(clearTimeout);
-    tm = [];
-};
+  const tag = makeText('[ MATERI KETIGA ]', { size: 8, color: PAL.gold });
+  tag.position.set(0, 5.6, 0);
+  add(s, tag);
 
-const rk = k => k[0] == 'a' ? 0 : k[0] == 'b' ? 1 : k[0] == 'c' ? 2 : k[0] == 'z' ? 9 : 3;
-const key = (e, i) => e.closest('.hd') || e.matches('.tag,h1,.sub,.hi') ? 'a' : e.matches('.btn') ? 'z' : e.matches('.orb') ? 'b' : e.matches('.lab,.chip') ? 'c' : 'k' + i;
+  const t1 = makeText('KELEBIHAN', { size: 24, color: PAL.ink, shadow: PAL.navy });
+  t1.position.set(0, 4.4, 0);
+  add(s, t1, { delay: 100 });
 
-function plan(s) {
-    const g = {};
-    s.querySelectorAll('.rv').forEach((e, i) => {
-        const k = key(e, i);
-        (g[k] = g[k] || []).push(e);
+  const items = [
+    ['DISTRIBUSI MERATA',   'Kebutuhan pokok dibagi adil, kesenjangan ditekan.'],
+    ['HARGA STABIL',        'Harga dikendalikan negara, gejolak pasar minim.'],
+    ['PENGANGGURAN RENDAH', 'Negara menempatkan tenaga kerja secara terencana.'],
+    ['PRIORITAS CEPAT',     'Proyek besar bisa digerakkan cepat karena terpusat.'],
+  ];
+  items.forEach((it, i) => {
+    const col = i % 2;
+    const row = Math.floor(i / 2);
+    const card = makeCard(10.6, 3.4, { title: it[0], body: it[1] });
+    card.position.set((col - 0.5) * 11.2, 1.4 - row * 4.1, 0);
+    add(s, card, {
+      delay: 250 + i * 110,
+      from:  { x: 0, y: -1.3, z: 1.8 },
     });
-    const o = [];
-    Object.keys(g).sort((a, b) => rk(a) - rk(b)).forEach((k, x) => {
-        const els = g[k];
-        const d = Math.max(0, ...els.map(e => e._dur || 0));
-        const tx = els.some(e => e.querySelector('.c'));
-        const prev = o[x - 1];
-        const at = x === 0 ? 300 : x === 1 ? o[0].at + 750 : k[0] === 'k' && prev.k[0] === 'k' ? prev.at + 200 : prev.end;
-        const st = els.some(e => e.matches('.chip')) ? 200 : 120;
-        o.push({k, els, at, end: at + (tx ? 350 + (els.length - 1) * st + d + 600 : 300)});
-    });
-    o.forEach(u => tm.push(setTimeout(() => u.els.forEach((e, j) => {
-        e.style.setProperty('--j', j);
-        e.classList.add('in');
-    }), u.at)));
+  });
+
+  return s;
 }
 
-let cur = -1;
-let busy = false;
+/* ---------- 5. KEKURANGAN ---------- */
+function buildKekurangan() {
+  const s = newSlide(4);
 
-function go(n) {
-    cur = n;
-    clr();
-    sd.forEach((s, i) => {
-        if (i >= n) {
-            s.querySelectorAll('.in').forEach(e => e.classList.remove('in'));
-            s.querySelectorAll('.c.d').forEach(e => e.classList.remove('d'));
-        }
+  const tag = makeText('[ MATERI KEEMPAT ]', { size: 8, color: PAL.red });
+  tag.position.set(0, 5.6, 0);
+  add(s, tag);
+
+  const t1 = makeText('KEKURANGAN', { size: 24, color: PAL.ink, shadow: PAL.redDk });
+  t1.position.set(0, 4.4, 0);
+  add(s, t1, { delay: 100 });
+
+  const items = [
+    ['INOVASI TERHAMBAT',   'Tanpa persaingan, kreativitas sulit berkembang.'],
+    ['KURANG EFISIEN',      'Birokrasi panjang, respons jadi lambat.'],
+    ['KELANGKAAN BARANG',   'Salah rencana memicu antrean dan penimbunan.'],
+    ['KEBEBASAN TERBATAS',  'Individu tak bebas memilih usaha atau harga.'],
+  ];
+  items.forEach((it, i) => {
+    const col = i % 2;
+    const row = Math.floor(i / 2);
+    const card = makeCard(10.6, 3.4, {
+      title: it[0], body: it[1],
+      border: PAL.redDk, bg: '#fff0f0', innerSh: '#ffd0d0',
+      titleCol: PAL.redDk, bodyCol: '#7a3030',
     });
-    sd.forEach((s, i) => {
-        s.classList.toggle('active', i === n);
-        s.classList.toggle('gone', i < n);
-        s.classList.toggle('next', i > n);
+    card.position.set((col - 0.5) * 11.2, 1.4 - row * 4.1, 0);
+    add(s, card, {
+      delay: 250 + i * 110,
+      from:  { x: 0, y: -1.3, z: 1.8 },
     });
-    dots.forEach((d, i) => d.classList.toggle('on', i === n));
-    document.querySelector('.bg').style.setProperty('--s', n);
-    document.documentElement.style.setProperty('--pg', (n + 1) / sd.length);
-    scr(document.getElementById('cn'), String(n + 1).padStart(2, '0') + ' / ' + String(sd.length).padStart(2, '0'));
-    plan(sd[n]);
+  });
+
+  return s;
 }
 
-function step() {
-    if (busy) return;
-    busy = true;
-    sweep();
-    clr();
-    const c = sd[cur];
-    const last = cur >= sd.length - 1;
-    c.classList.remove('active');
-    c.classList.add('gone');
-    const n = c.querySelectorAll('.rv').length;
-    setTimeout(() => {
-        if (last) {
-            sd.forEach(x => {
-                x.classList.remove('active', 'gone');
-                x.classList.add('next');
-                x.querySelectorAll('.in').forEach(e => e.classList.remove('in'));
-            });
-            void app.offsetWidth;
-            go(0);
-        } else {
-            go(cur + 1);
-        }
-        setTimeout(() => busy = false, 900);
-    }, (n - 1) * 55 + 1200);
+/* ---------- 6. NEGARA PENGANUT ---------- */
+function buildNegara() {
+  const s = newSlide(5);
+
+  const tag = makeText('[ MATERI KELIMA ]', { size: 8, color: PAL.gold });
+  tag.position.set(0, 5.6, 0);
+  add(s, tag);
+
+  const t1 = makeText('NEGARA PENGANUT', { size: 24, color: PAL.ink, shadow: PAL.navy });
+  t1.position.set(0, 4.4, 0);
+  add(s, t1, { delay: 100 });
+
+  const items = [
+    { name: 'KOREA UTARA', flag: flagKP, desc: 'Rencana negara mengatur hampir seluruh sektor ekonomi.', badge: 'MASIH', old: false },
+    { name: 'KUBA',        flag: flagCU, desc: 'Pemerintah kuasai sektor utama, ruang swasta kecil.',    badge: 'MASIH', old: false },
+    { name: 'UNI SOVIET',  flag: flagSU, desc: 'Rencana lima tahunan atur produksi nasional.',           badge: '1991',  old: true  },
+    { name: 'TIONGKOK',    flag: flagCN, desc: 'Ekonomi terencana ketat sebelum reformasi pasar 1978.',  badge: '1978',  old: true  },
+  ];
+  items.forEach((it, i) => {
+    const card = makeCard(5.3, 6.6, {
+      title: it.name, body: it.desc,
+      flag: it.flag,
+      titleCol: it.old ? PAL.goldDk : PAL.navy,
+    });
+    card.position.set((i - 1.5) * 5.8, -0.9, 0);
+    add(s, card, {
+      delay: 250 + i * 120,
+      from:  { x: 0, y: -1.6, z: 1.8 },
+    });
+  });
+
+  return s;
 }
 
-document.addEventListener('click', e => {
-    const b = e.target.closest('[data-go]');
-    if (!b || busy) return;
-    const r = b.getBoundingClientRect();
-    const o = document.createElement('i');
-    o.className = 'rip';
-    o.style.cssText = `left:${r.left + r.width / 2}px;top:${r.top + r.height / 2}px`;
-    document.body.appendChild(o);
-    setTimeout(() => o.remove(), 1600);
-    step();
-});
+/* ---------- 7. KESIMPULAN ---------- */
+function buildKesimpulan() {
+  const s = newSlide(6);
+
+  const tag = makeText('[ PENUTUP ]', { size: 8, color: PAL.gold });
+  tag.position.set(0, 5.6, 0);
+  add(s, tag);
+
+  const t1 = makeText('KESIMPULAN', { size: 24, color: PAL.gold, shadow: PAL.navy });
+  t1.position.set(0, 4.4, 0);
+  add(s, t1, { delay: 100 });
+
+  const body = makeText(
+    'Sistem ekonomi komando menempatkan pemerintah pusat sebagai pengendali penuh ' +
+    'kegiatan ekonomi, sehingga distribusi lebih merata dan harga cenderung stabil. ' +
+    'Namun minimnya persaingan membuat inovasi terhambat dan efisiensi menurun, ' +
+    'sehingga sistem ini jarang diterapkan secara utuh pada masa kini.',
+    {
+      size: 8, color: PAL.text, maxW: 360, align: 'center',
+      bg: PAL.card, bgBorder: PAL.navy, bgShadow: PAL.cardSh, pad: 10,
+    }
+  );
+  body.position.set(0, 1.9, 0);
+  add(s, body, { delay: 400 });
+
+  const items = [
+    ['TERPUSAT',  'Semua keputusan ekonomi di tangan negara.'],
+    ['KELEBIHAN', 'Pemerataan, harga stabil, arah jelas.'],
+    ['KEKURANGAN','Inovasi rendah, birokrasi panjang.'],
+  ];
+  items.forEach((it, i) => {
+    const card = makeCard(6.8, 2.9, { title: it[0], body: it[1] });
+    card.position.set((i - 1) * 7.4, -3.1, 0);
+    add(s, card, {
+      delay: 620 + i * 100,
+      from:  { x: 0, y: -1.2, z: 1.5 },
+    });
+  });
+
+  return s;
+}
+
+/* ---------- 8. TERIMA KASIH ---------- */
+function buildTerimakasih() {
+  const s = newSlide(7);
+
+  const big = makeText('TERIMA KASIH', { size: 40, color: PAL.gold, shadow: PAL.navy });
+  big.position.set(0, 1.4, 0);
+  add(s, big, { delay: 120 });
+
+  const sub = makeText('KELOMPOK 2 — SISTEM EKONOMI KOMANDO', { size: 12, color: PAL.ink });
+  sub.position.set(0, -1.1, 0);
+  add(s, sub, { delay: 400 });
+
+  const hint = makeText('[ TEKAN -> UNTUK ULANG ]', { size: 8, color: PAL.muted });
+  hint.position.set(0, -3.5, 0);
+  add(s, hint, { delay: 700 });
+
+  /* halo pixels (grid pixel melingkar) */
+  for (let i = 0; i < 3; i++) {
+    const ring = makeText('· · · · · · · · · · · · · · · · · · · · · · ·',
+      { size: 8, color: i === 1 ? PAL.blue : PAL.gold });
+    ring.position.set(0, 3.6 + i * 0.1, -2 - i * 0.5);
+    ring.material.opacity = 0.55 - i * 0.15;
+    add(s, ring, { delay: 200 + i * 200, fromScale: 0.4 });
+  }
+
+  return s;
+}
+
+/* =========================================================
+   BUILD SEMUA
+   ========================================================= */
+const BUILDERS = [
+  buildHero, buildPengertian, buildCiri, buildKelebihan,
+  buildKekurangan, buildNegara, buildKesimpulan, buildTerimakasih,
+];
+
+function buildAll() {
+  BUILDERS.forEach(fn => slides.push(fn()));
+}
+
+/* =========================================================
+   OPACITY HELPERS
+   ========================================================= */
+function setOpacity(mesh, o) {
+  const m = mesh.material;
+  if (Array.isArray(m)) m.forEach(mm => { mm.opacity = o; });
+  else if (m)           m.opacity = o;
+}
+
+function setSlideOpacity(slide, o) {
+  slide.userData.elements.forEach(el => setOpacity(el, o));
+}
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+const TRANS_DUR = 1300;
+let transitioning = false;
+let transStart = 0;
+let transFrom = 0;
+let transTo = 0;
+
+function resetSlide(slide) {
+  slide.userData.elements.forEach(el => {
+    el.userData.animated = false;
+    el.userData.enterAt = 0;
+    const b = el.userData.basePos;
+    const off = el.userData.fromOffset;
+    el.position.set(b.x + off.x, b.y + off.y, b.z + off.z);
+    el.scale.setScalar(el.userData.fromScale);
+    setOpacity(el, 0);
+  });
+}
+
+function goTo(n) {
+  if (transitioning) return;
+  if (n < 0 || n >= slides.length) return;
+  if (n === curSlide) return;
+
+  resetSlide(slides[n]);
+
+  transFrom = curSlide;
+  transTo = n;
+  transStart = performance.now();
+  transitioning = true;
+  curSlide = n;
+  updateUI();
+}
+
+/* =========================================================
+   UI
+   ========================================================= */
+const dtEl = document.getElementById('dt');
+const cnEl = document.getElementById('cn');
+
+function buildUI() {
+  dtEl.innerHTML = slides.map(() => '<i></i>').join('');
+}
+
+function updateUI() {
+  const dots = dtEl.children;
+  for (let i = 0; i < dots.length; i++) {
+    dots[i].className = i === curSlide ? 'on' : '';
+  }
+  cnEl.textContent = String(curSlide + 1).padStart(2, '0') +
+                     ' / ' + String(slides.length).padStart(2, '0');
+}
+
+/* =========================================================
+   MAIN LOOP
+   ========================================================= */
+const camZFrom = new THREE.Vector3();
+const camZTo   = new THREE.Vector3();
+
+function tick(now) {
+  requestAnimationFrame(tick);
+  if (!now) now = performance.now();
+
+  /* --- camera transition --- */
+  if (transitioning) {
+    const t = Math.min(1, (now - transStart) / TRANS_DUR);
+    const e = 1 - Math.pow(1 - t, 3);  // easeOutCubic
+
+    const fromZ = -transFrom * GAP + CAM_DIST;
+    const toZ   = -transTo   * GAP + CAM_DIST;
+    camera.position.z = fromZ + (toZ - fromZ) * e;
+
+    /* fade-out slide lama */
+    const exitP = Math.min(1, t / 0.55);
+    setSlideOpacity(slides[transFrom], 1 - exitP);
+
+    if (t >= 1) {
+      transitioning = false;
+      setSlideOpacity(slides[transFrom], 1);
+      /* slide lama sudah tidak akan terlihat lagi, aman direset */
+      slides[transFrom].userData.elements.forEach(el => {
+        el.userData.animated = true;
+      });
+    }
+  } else {
+    /* idle: kamera tetap */
+    camera.position.z = -curSlide * GAP + CAM_DIST;
+  }
+
+  /* --- entry animation slide aktif --- */
+  const cur = slides[curSlide];
+  if (cur) {
+    for (const el of cur.userData.elements) {
+      if (el.userData.animated) continue;
+      if (el.userData.enterAt === 0) el.userData.enterAt = now;
+      const et = now - el.userData.enterAt - el.userData.entryDelay;
+      if (et < 0) continue;
+
+      const t = Math.min(1, et / el.userData.entryDur);
+      const e = 1 - Math.pow(1 - t, 4);  // easeOutQuart
+
+      const b   = el.userData.basePos;
+      const off = el.userData.fromOffset;
+      el.position.set(
+        b.x + off.x * (1 - e),
+        b.y + off.y * (1 - e),
+        b.z + off.z * (1 - e)
+      );
+      const s = el.userData.fromScale + (1 - el.userData.fromScale) * e;
+      el.scale.setScalar(s);
+
+      /* kalau material punya baseOpacity dari dekorasi, hormati itu */
+      const baseOp = el.userData.baseOpacity != null ? el.userData.baseOpacity : 1;
+      setOpacity(el, baseOp * e);
+
+      if (t >= 1) el.userData.animated = true;
+    }
+  }
+
+  renderer.render(scene, camera);
+}
+
+/* =========================================================
+   EVENT HANDLERS
+   ========================================================= */
+function onNext() { goTo(curSlide + 1); }
+function onPrev() { goTo(curSlide - 1); }
 
 document.addEventListener('keydown', e => {
-    if (e.key === 'ArrowRight' || e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        step();
-    }
+  if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
+    e.preventDefault(); onNext();
+  } else if (e.key === 'ArrowLeft') {
+    e.preventDefault(); onPrev();
+  }
 });
 
-let mx = innerWidth / 2;
-let my = innerHeight / 2;
-let hv = null;
-
-let pe = null;
-let dirty = false;
-
-document.addEventListener('mousemove', e => {
-    mx = e.clientX;
-    my = e.clientY;
-    pe = e.target;
-    dirty = true;
+let downX = 0, downY = 0, downT = 0;
+canvas.addEventListener('pointerdown', e => {
+  downX = e.clientX; downY = e.clientY; downT = performance.now();
+});
+canvas.addEventListener('pointerup', e => {
+  const dx = e.clientX - downX;
+  const dy = e.clientY - downY;
+  const dt = performance.now() - downT;
+  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+    if (dx < 0) onNext(); else onPrev();
+  } else if (Math.abs(dx) < 12 && Math.abs(dy) < 12 && dt < 400) {
+    onNext();
+  }
 });
 
-app.addEventListener('animationend', e => {
-    const c = e.target;
-    if (c.classList.contains('c') && !c.closest('.wv')) c.classList.add('d');
-});
+/* =========================================================
+   INIT
+   ========================================================= */
+function init() {
+  resize();
+  computePX();
+  buildAll();
+  buildUI();
 
-document.addEventListener('keydown', e => {
-    if (e.key === 'l' || e.key === 'L') root.classList.toggle('lite');
-});
-
-app.querySelectorAll('svg path,svg circle,svg rect').forEach(p => p.setAttribute('pathLength', 1));
-
-for (let k = 0; k < 12; k++) {
-    const p = document.createElement('i');
-    const s = 14 + Math.random() * 30;
-    p.className = 'sp ' + (k % 2 ? 'a' : 'b');
-    p.style.cssText = `left:${Math.random() * 100}%;width:${s}px;height:${s}px;animation-duration:${16 + Math.random() * 18}s,${8 + Math.random() * 12}s;animation-delay:${-Math.random() * 20}s,0s`;
-    document.querySelector('.bg').appendChild(p);
-}
-
-const curtain = document.createElement('div');
-curtain.className = 'cur';
-curtain.innerHTML = Array.from({length: 8}, (_, i) => `<i style="--i:${i}"></i>`).join('');
-document.body.appendChild(curtain);
-
-function sweep() {
-    curtain.classList.remove('run');
-    void curtain.offsetWidth;
-    curtain.classList.add('run');
-}
-
-let sid;
-
-function scr(el, t) {
-    clearInterval(sid);
-    let f = 0;
-    sid = setInterval(() => {
-        el.textContent = [...t].map((ch, i) => /\d/.test(ch) && f < 6 + i * 2 ? Math.floor(Math.random() * 10) : ch).join('');
-        if (++f > 20) clearInterval(sid);
-    }, 45);
-}
-
-const gl = document.createElement('div');
-gl.className = 'gl';
-document.querySelector('.bg').after(gl);
-
-let gx = mx;
-let gy = my;
-const tilted = new Set();
-
-const root = document.documentElement;
-let fc = 0;
-let ft = performance.now();
-let low = 0;
-
-(function tick(now = performance.now()) {
-    if (dirty) {
-        dirty = false;
-        const c = pe && pe.closest ? pe.closest('.card') : null;
-        if (hv && hv !== c) hv._t = [0, 0];
-        hv = c;
-        if (c) {
-            const r = c.getBoundingClientRect();
-            c.style.setProperty('--mx', mx - r.left + 'px');
-            c.style.setProperty('--my', my - r.top + 'px');
-            c._t = [(mx - r.left) / r.width - .5, (my - r.top) / r.height - .5];
-            c._u = c._u || [0, 0];
-            tilted.add(c);
-        }
-    }
-    if (Math.abs(mx - gx) > .1 || Math.abs(my - gy) > .1) {
-        gx += (mx - gx) * .12;
-        gy += (my - gy) * .12;
-        gl.style.transform = `translate3d(${gx}px,${gy}px,0)`;
-    }
-    tilted.forEach(c => {
-        const t = c._t;
-        const u = c._u;
-        u[0] += (t[0] - u[0]) * .14;
-        u[1] += (t[1] - u[1]) * .14;
-        const a = Math.hypot(u[0], u[1]) * 16;
-        c.style.rotate = `${-u[1]} ${u[0]} 0 ${a}deg`;
-        if (hv !== c && a < .03) {
-            c.style.rotate = '';
-            tilted.delete(c);
-        }
+  /* simpan baseOpacity dekorasi untuk slide 8 (halo) */
+  slides.forEach(slide => {
+    slide.userData.elements.forEach(el => {
+      el.userData.baseOpacity = el.material.opacity != null ? 1 : 1;
     });
-    fc++;
-    if (now - ft >= 1000) {
-        const fps = fc * 1000 / (now - ft);
-        fc = 0;
-        ft = now;
-        if (!document.hidden && fps < 40) {
-            if (++low >= 3) root.classList.add('lite');
-        } else low = 0;
+  });
+
+  /* reset semua slide ke state "belum masuk" */
+  slides.forEach((s, i) => {
+    resetSlide(s);
+    if (i === 0) {
+      s.userData.elements.forEach(el => {
+        el.userData.animated = false;
+        el.userData.enterAt = 0;
+      });
+    } else {
+      s.userData.elements.forEach(el => {
+        el.userData.animated = false;
+        el.userData.enterAt = 0;
+      });
     }
-    requestAnimationFrame(tick);
+  });
+
+  updateUI();
+  requestAnimationFrame(tick);
+
+  /* fade boot */
+  const boot = document.getElementById('boot');
+  setTimeout(() => {
+    boot.classList.add('gone');
+    setTimeout(() => boot.remove(), 800);
+  }, 400);
+}
+
+window.addEventListener('resize', () => {
+  resize();
+  /* PX tetap — landscape sudah dikunci ke SHORT_SIDE */
+});
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+
 })();
-
-setTimeout(() => go(0), 200);
